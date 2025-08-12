@@ -4,8 +4,8 @@ WORKDIR /app
 ENV NODE_ENV=production PORT=3000 DATA_DIR=/data
 
 # Install build tools for better-sqlite3
-RUN apk add --no-cache python3 make g++ \
- && npm config set python /usr/bin/python3
+RUN apk add --no-cache python3 make g++
+RUN npm config set python /usr/bin/python3
 
 COPY package*.json ./
 RUN npm install --omit=dev
