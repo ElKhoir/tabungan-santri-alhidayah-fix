@@ -1,0 +1,20 @@
+:root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; --primary:#4f46e5; --danger:#ef4444; }
+*{ box-sizing:border-box; }
+body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background:var(--bg); color:var(--text); }
+header{ display:flex; gap:12px; align-items:center; justify-content:space-between; padding:16px 20px; background:#0b1023; position:sticky; top:0; z-index:10; }
+h1{ margin:0; font-size:20px; }
+main{ max-width:1000px; margin:20px auto; padding:0 16px; display:grid; gap:16px; }
+.card{ background:var(--card); padding:16px; border:1px solid #1f2937; border-radius:16px; box-shadow:0 6px 16px rgba(0,0,0,.25); }
+.row{ display:flex; gap:8px; flex-wrap:wrap; }
+input{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #334155; background:#0b1221; color:var(--text); }
+button{ padding:10px 14px; border:none; border-radius:10px; background:var(--primary); color:white; font-weight:600; }
+button.secondary{ background:#334155; }
+button.danger{ background:var(--danger); }
+button.light{ filter:brightness(1.1); }
+.hidden{ display:none; }
+.muted{ color:var(--muted); }
+table{ width:100%; border-collapse:collapse; }
+th, td{ padding:10px; border-bottom:1px solid #1f2937; text-align:left; }
+th{ color:#cbd5e1; }
+.saldo{ font-size:28px; font-weight:800; margin:10px 0; }
+@media (max-width:600px){ header{ flex-direction:column; align-items:flex-start; gap:8px; } }

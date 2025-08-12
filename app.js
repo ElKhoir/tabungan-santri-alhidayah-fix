@@ -1,0 +1,37 @@
+// public/app.js
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+const API = {
+  base: '',
+  token: localStorage.getItem('token') || '',
+  role: localStorage.getItem('role') || '',
+  studentId: localStorage.getItem('studentId') || '',
+  headers() { const h = { 'Content-Type': 'application/json' }; if (this.token) h['Authorization'] = 'Bearer ' + this.token; return h; },
+  async loginAdmin(password){ const r = await fetch('/api/auth/login-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})}); const j=await r.json(); if(!r.ok) throw new Error(j.error||'Gagal login admin'); this.token=j.token; this.role=j.role; localStorage.setItem('token',j.token); localStorage.setItem('role',j.role); },
+  async loginUser(nis,pin){ const r = await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nis,pin})}); const j=await r.json(); if(!r.ok) throw new Error(j.error||'Gagal login'); this.token=j.token; this.role=j.role; localStorage.setItem('token',j.token); localStorage.setItem('role',j.role); localStorage.setItem('studentId', j.student.id); localStorage.setItem('studentName', j.student.name); return j.student; },
+  async me(){ const r=await fetch('/api/me',{headers:this.headers()}); return r.json(); },
+  async students(){ const r=await fetch('/api/students',{headers:this.headers()}); return r.json(); },
+  async saveStudent(payload){ if(payload.id){ const r=await fetch('/api/students/'+payload.id,{method:'PUT',headers:this.headers(),body:JSON.stringify(payload)}); return r.json(); } else { const r=await fetch('/api/students',{method:'POST',headers:this.headers(),body:JSON.stringify(payload)}); return r.json(); } },
+  async deleteStudent(id){ const r=await fetch('/api/students/'+id,{method:'DELETE',headers:this.headers()}); return r.json(); },
+  async transact({student_id,amount,type,note}){ const r=await fetch('/api/transactions',{method:'POST',headers:this.headers(),body:JSON.stringify({student_id,amount,type,note})}); return r.json(); },
+  async balance(studentId){ const r=await fetch('/api/balance/'+studentId,{headers:this.headers()}); return r.json(); },
+  async transactions(studentId){ const r=await fetch('/api/transactions/'+studentId,{headers:this.headers()}); return r.json(); }
+};
+const sectionAuth=$('#auth'); const sectionAdmin=$('#adminPanel'); const sectionUser=$('#userPanel'); const appNameEls=['#appName','#appNameFooter'].map($);
+function setView(role){ sectionAuth.classList.add('hidden'); sectionAdmin.classList.add('hidden'); sectionUser.classList.add('hidden'); if(role==='admin') sectionAdmin.classList.remove('hidden'); else if(role==='user') sectionUser.classList.remove('hidden'); else sectionAuth.classList.remove('hidden'); }
+const tblStudentsBody=$('#tblStudents tbody');
+async function refreshStudents(){ const list=await API.students(); tblStudentsBody.innerHTML=list.map(s=>`<tr><td>${s.id}</td><td>${s.nis}</td><td>${s.name}</td><td>Rp ${Number(s.saldo).toLocaleString('id-ID')}</td><td><button data-edit="${s.id}">Edit</button><button class="danger" data-del="${s.id}">Hapus</button></td></tr>`).join(''); }
+$('#btnSaveStudent').addEventListener('click', async ()=>{ const payload={ id:$('#s_id').value||undefined, nis:$('#s_nis').value.trim()||undefined, name:$('#s_name').value.trim()||undefined, pin:$('#s_pin').value.trim()||undefined }; try{ const res=await API.saveStudent(payload); if(res.error) throw new Error(res.error); $('#s_id').value=''; $('#s_nis').value=''; $('#s_name').value=''; $('#s_pin').value=''; await refreshStudents(); alert('Tersimpan'); }catch(e){ alert(e.message); } });
+$('#btnResetForm').addEventListener('click', ()=>{ $('#s_id').value=''; $('#s_nis').value=''; $('#s_name').value=''; $('#s_pin').value=''; });
+tblStudentsBody.addEventListener('click', async (e)=>{ const editId=e.target.getAttribute('data-edit'); const delId=e.target.getAttribute('data-del'); if(editId){ const tr=e.target.closest('tr'); $('#s_id').value=editId; $('#s_nis').value=tr.children[1].textContent; $('#s_name').value=tr.children[2].textContent; $('#s_pin').value=''; } if(delId){ if(confirm('Hapus siswa ini? Ini juga akan menghapus semua transaksinya.')){ const res=await API.deleteStudent(delId); if(res.error) return alert(res.error); await refreshStudents(); } } });
+$('#btnDeposit').addEventListener('click', async ()=>{ const student_id=Number($('#t_studentId').value); const amount=Math.abs(Number($('#t_amount').value)); const note=$('#t_note').value.trim(); if(!student_id||!amount) return alert('Isi ID siswa dan jumlah'); const res=await API.transact({student_id,amount,type:'DEPOSIT',note}); if(res.error) return alert(res.error); await refreshStudents(); alert('Setoran berhasil'); });
+$('#btnWithdraw').addEventListener('click', async ()=>{ const student_id=Number($('#t_studentId').value); const amount=Math.abs(Number($('#t_amount').value)); const note=$('#t_note').value.trim(); if(!student_id||!amount) return alert('Isi ID siswa dan jumlah'); const res=await API.transact({student_id,amount,type:'WITHDRAW',note}); if(res.error) return alert(res.error); await refreshStudents(); alert('Penarikan berhasil'); });
+$('#btnAdminLogin').addEventListener('click', async ()=>{ try{ await API.loginAdmin($('#adminPass').value); setView('admin'); await refreshStudents(); }catch(e){ alert(e.message); } });
+$('#btnAdminLogout').addEventListener('click', ()=>{ localStorage.clear(); location.reload(); });
+const uName=$('#u_name'); const uSaldo=$('#u_saldo'); const txBody=$('#tblTx tbody');
+async function refreshUser(){ const name=localStorage.getItem('studentName')||'-'; const id=localStorage.getItem('studentId'); uName.textContent=name; const {saldo}=await API.balance(id); uSaldo.textContent='Rp '+Number(saldo).toLocaleString('id-ID'); const list=await API.transactions(id); txBody.innerHTML=list.map(t=>`<tr><td>${new Date(t.created_at).toLocaleString('id-ID')}</td><td>${t.type}</td><td>${(t.type==='WITHDRAW'?'−':'')+'Rp '+Number(t.amount).toLocaleString('id-ID')}</td><td>${t.note||''}</td></tr>`).join(''); }
+$('#btnUserLogin').addEventListener('click', async ()=>{ try{ await API.loginUser($('#nis').value.trim(), $('#pin').value.trim()); setView('user'); await refreshUser(); }catch(e){ alert(e.message); } });
+$('#btnUserLogout').addEventListener('click', ()=>{ localStorage.clear(); location.reload(); });
+$('#btnRefreshSaldo').addEventListener('click', refreshUser);
+window.addEventListener('load', async ()=>{ $('#year').textContent=new Date().getFullYear(); const appName=(await fetch('/manifest.webmanifest').then(r=>r.json()).catch(()=>({name:'Tabungan Pontra'}))).name||'Tabungan Pontra'; appNameEls.forEach(el=> el.textContent=appName ); if(API.token && API.role){ setView(API.role); if(API.role==='admin') refreshStudents(); if(API.role==='user') refreshUser(); } else { setView(''); } });
+let deferredPrompt; window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; const btn=document.getElementById('installButton'); btn.hidden=false; btn.addEventListener('click', async ()=>{ btn.hidden=true; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }); }); if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('/sw.js'); }); }

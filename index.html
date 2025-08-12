@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabungan Pontra</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#4f46e5" />
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <h1 id="appName">Tabungan Pontra</h1>
+    <button id="installButton" hidden>Install Aplikasi</button>
+  </header>
+  <main>
+    <section id="auth">
+      <div class="card">
+        <h2>Masuk sebagai Admin</h2>
+        <input id="adminPass" type="password" placeholder="Kata Sandi Admin" />
+        <button id="btnAdminLogin">Masuk Admin</button>
+      </div>
+      <div class="card">
+        <h2>Masuk sebagai Siswa</h2>
+        <input id="nis" placeholder="NIS" />
+        <input id="pin" type="password" placeholder="PIN" />
+        <button id="btnUserLogin">Masuk Siswa</button>
+      </div>
+      <p class="muted">Tip: Atur kata sandi admin di file <code>.env</code></p>
+    </section>
+    <section id="adminPanel" class="hidden">
+      <h2>Panel Admin</h2>
+      <div class="card">
+        <h3>Tambah / Ubah Siswa</h3>
+        <input id="s_id" type="hidden" />
+        <input id="s_nis" placeholder="NIS" />
+        <input id="s_name" placeholder="Nama" />
+        <input id="s_pin" placeholder="PIN (untuk set/ubah)" />
+        <div class="row">
+          <button id="btnSaveStudent">Simpan</button>
+          <button id="btnResetForm" class="secondary">Bersihkan</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Daftar Siswa</h3>
+        <table id="tblStudents">
+          <thead>
+            <tr><th>ID</th><th>NIS</th><th>Nama</th><th>Saldo</th><th>Aksi</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Transaksi Cepat</h3>
+        <div class="row">
+          <input id="t_studentId" placeholder="ID Siswa" />
+          <input id="t_amount" type="number" placeholder="Jumlah (Rp)" />
+        </div>
+        <input id="t_note" placeholder="Catatan (opsional)" />
+        <div class="row">
+          <button id="btnDeposit">+ Setor</button>
+          <button id="btnWithdraw" class="danger">- Tarik</button>
+        </div>
+      </div>
+      <button id="btnAdminLogout" class="danger light">Keluar</button>
+    </section>
+    <section id="userPanel" class="hidden">
+      <h2>Halo, <span id="u_name"></span></h2>
+      <div class="card">
+        <h3>Saldo Saat Ini</h3>
+        <div id="u_saldo" class="saldo">Rp 0</div>
+        <button id="btnRefreshSaldo">Refresh</button>
+      </div>
+      <div class="card">
+        <h3>Riwayat Transaksi</h3>
+        <table id="tblTx">
+          <thead>
+            <tr><th>Tanggal</th><th>Jenis</th><th>Jumlah</th><th>Catatan</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <button id="btnUserLogout" class="danger light">Keluar</button>
+    </section>
+  </main>
+  <footer>
+    <small>© <span id="year"></span> <span id="appNameFooter">Tabungan Pontra</span></small>
+  </footer>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
