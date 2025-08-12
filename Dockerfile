@@ -1,14 +1,14 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000 DATA_DIR=/data
 
-# Install build tools for better-sqlite3
-RUN apk add --no-cache python3 make g++
-RUN npm config set python /usr/bin/python3
+# (opsional) alat dasar
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev     # bukan 'npm ci'
 
 COPY . .
 RUN mkdir -p ${DATA_DIR}
